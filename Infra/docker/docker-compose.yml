@@ -1,0 +1,62 @@
+version: '3.8'
+services:
+  # Notification Service
+  notification-service:
+    build: ./Services/notification-service
+    container_name: notification-service
+    restart: always
+    ports:
+      - "4000:4000"
+    environment:
+      - MONGO_URI=mongodb://mongo:27017/pulsechain
+      - REDIS_URL=redis://redis:6379
+    depends_on:
+      - mongo
+      - redis
+
+  # User Service
+  user-service:
+    build: ./Services/user-service
+    container_name: user-service
+    restart: always
+    ports:
+      - "5000:5000"
+    environment:
+      - MONGO_URI=mongodb://mongo:27017/pulsechain
+      - JWT_SECRET=${JWT_SECRET}
+    depends_on:
+      - mongo
+
+  # Blockchain Logging Service
+  blockchain-logging-service:
+    build: ./Services/blockchain
+    container_name: blockchain-service
+    restart: always
+    ports:
+      - "6000:6000"
+    environment:
+      - INFURA_API_URL=${INFURA_API_URL}
+      - WALLET_PRIVATE_KEY=${WALLET_PRIVATE_KEY}
+    depends_on:
+      - mongo
+
+  # MongoDB
+  mongo:
+    image: mongo:latest
+    container_name: mongo
+    restart: always
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo-data:/data/db
+
+  # Redis
+  redis:
+    image: redis:alpine
+    container_name: redis
+    restart: always
+    ports:
+      - "6379:6379"
+
+volumes:
+  mongo-data:
